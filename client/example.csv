@@ -1,0 +1,7 @@
+itemid,itemname,itemvalue,transactiontype
+1,Firstitem,222,0
+2,Seconditem,333,1
+3,Thirditem,444,2
+4,Fourthitem,555,0
+5,Fifthitem,666,1
+6,Sixthitem,777,2
