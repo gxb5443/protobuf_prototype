@@ -17,15 +17,15 @@ import (
 type Headers []string
 
 func main() {
-	filename := flag.String("f", "CSVValue.csv", "Enter the filename of CSV to read from")
-	dest := flag.String("d", "127.0.0.1:2110", "Enter the destination socket address")
+	filename := flag.String("f", "example.csv", "Enter the filename of CSV to read from")
+	dest := flag.String("d", "localhost:2110", "Enter the destination socket address")
 	flag.Parse()
 	data, err := retrieveDataFromFile(filename)
 	checkError(err)
 	sendDataToDest(data, dest)
 }
 
-func checkError(err Error) {
+func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
@@ -33,7 +33,7 @@ func checkError(err Error) {
 }
 
 func retrieveDataFromFile(fname *string) ([]byte, error) {
-	file, err := os.Open(fname)
+	file, err := os.Open(*fname)
 	checkError(err)
 	defer file.Close()
 	csvreader := csv.NewReader(file)
@@ -43,7 +43,7 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 	itemIdIndex := headers.getHeaderIndex("itemid")
 	itemNameIndex := headers.getHeaderIndex("itemname")
 	itemValueIndex := headers.getHeaderIndex("itemvalue")
-	itemTypeIndex := headers.getHeaderIndex("itemType")
+	itemTypeIndex := headers.getHeaderIndex("transactiontype")
 	Testmessage := new(PbTest.TestMessage)
 	for {
 		record, err := csvreader.Read()
@@ -55,19 +55,19 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 		msgItem := new(PbTest.TestMessage_MsgItem)
 		itemid, err := strconv.Atoi(record[itemIdIndex])
 		checkError(err)
-		msgItem.Id = proto.Int32(itemid)
+		msgItem.Id = proto.Int32(int32(itemid))
 		msgItem.ItemName = &record[itemNameIndex]
 		itemValue, err := strconv.Atoi(record[itemValueIndex])
 		checkError(err)
-		msgItem.ItemValue = proto.Int32(itemValue)
+		msgItem.ItemValue = proto.Int32(int32(itemValue))
 		ttype, err := strconv.Atoi(record[itemTypeIndex])
 		checkError(err)
 		converted_ttype := PbTest.TestMessage_TType(ttype)
 		msgItem.TransactionType = &converted_ttype
-		TestMessage.MessageItems = append(TestMessage.MessageItems, msgItem)
+		Testmessage.MessageItems = append(Testmessage.MessageItems, msgItem)
 		fmt.Println(record)
 	}
-	return proto.Marshal(TestMessage)
+	return proto.Marshal(Testmessage)
 }
 
 func (h Headers) getHeaderIndex(headername string) int {
@@ -82,7 +82,7 @@ func (h Headers) getHeaderIndex(headername string) int {
 }
 
 func sendDataToDest(data []byte, dst *string) {
-	conn, err := net.Dial("tcp", dst)
+	conn, err := net.Dial("tcp", *dst)
 	checkError(err)
 	n, err := conn.Write(data)
 	checkError(err)
