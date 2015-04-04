@@ -33,27 +33,27 @@ func main() {
 }
 
 func ReadReceivedData(data *PbTest.TestMessage) {
-	msgItems := items.GetMessageItems()
+	msgItems := data.GetMessageItems()
 	fmt.Println("Receiving data...")
 	for _, item := range msgItems {
 		fmt.Println(item)
 	}
 }
 
-func checkError(err Error) {
+func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
 }
 
-func handleProtoClient(conn net.Conn, c chan *PbTest.Testmessage) {
+func handleProtoClient(conn net.Conn, c chan *PbTest.TestMessage) {
 	fmt.Println("Connected!")
 	defer conn.Close()
 	var buf bytes.Buffer
 	io.Copy(&buf, conn)
 	pdata := new(PbTest.TestMessage)
-	err = proto.Unmarshal(buf, pdata)
+	err := proto.Unmarshal(buf.Bytes(), pdata)
 	checkError(err)
 	c <- pdata
 }

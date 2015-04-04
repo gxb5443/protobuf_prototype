@@ -18,7 +18,7 @@ type Headers []string
 
 func main() {
 	filename := flag.String("f", "example.csv", "Enter the filename of CSV to read from")
-	dest := flag.String("d", "localhost:2110", "Enter the destination socket address")
+	dest := flag.String("d", "localhost:8080", "Enter the destination socket address")
 	flag.Parse()
 	data, err := retrieveDataFromFile(filename)
 	checkError(err)
@@ -45,6 +45,8 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 	itemValueIndex := headers.getHeaderIndex("itemvalue")
 	itemTypeIndex := headers.getHeaderIndex("transactiontype")
 	Testmessage := new(PbTest.TestMessage)
+	Testmessage.ClientName = proto.String("Test Client")
+	Testmessage.ClientId = proto.Int32(191)
 	for {
 		record, err := csvreader.Read()
 		if err != io.EOF {
