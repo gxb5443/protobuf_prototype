@@ -18,4 +18,8 @@ message TestMessage {
     optional int32 itemValue = 3;
     optional TType transaction_type = 4;
   }
+
+  service PbService {
+    rpc summate (TestMessage) returns (PbResponse);
+  }
 }
