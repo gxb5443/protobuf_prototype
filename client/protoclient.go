@@ -46,7 +46,7 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 	itemTypeIndex := headers.getHeaderIndex("transactiontype")
 	Testmessage := new(PbTest.TestMessage)
 	Testmessage.ClientName = proto.String("Test Client")
-	Testmessage.ClientId = proto.Int32(191)
+	Testmessage.ClientId = proto.Int(191)
 	for {
 		record, err := csvreader.Read()
 		if err != io.EOF {
@@ -57,11 +57,11 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 		msgItem := new(PbTest.TestMessage_MsgItem)
 		itemid, err := strconv.Atoi(record[itemIdIndex])
 		checkError(err)
-		msgItem.Id = proto.Int32(int32(itemid))
+		msgItem.Id = proto.Int(itemid)
 		msgItem.ItemName = &record[itemNameIndex]
 		itemValue, err := strconv.Atoi(record[itemValueIndex])
 		checkError(err)
-		msgItem.ItemValue = proto.Int32(int32(itemValue))
+		msgItem.ItemValue = proto.Int(itemValue)
 		ttype, err := strconv.Atoi(record[itemTypeIndex])
 		checkError(err)
 		converted_ttype := PbTest.TestMessage_TType(ttype)
