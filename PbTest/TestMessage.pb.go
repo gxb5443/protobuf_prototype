@@ -10,6 +10,7 @@ It is generated from these files:
 
 It has these top-level messages:
 	TestMessage
+	TestResponse
 */
 package PbTest
 
@@ -53,6 +54,42 @@ func (x *TestMessage_TType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*x = TestMessage_TType(value)
+	return nil
+}
+
+type TestResponse_StatusType int32
+
+const (
+	TestResponse_SUCCESS      TestResponse_StatusType = 0
+	TestResponse_TYPE_FAILURE TestResponse_StatusType = 1
+	TestResponse_FAILURE      TestResponse_StatusType = 2
+)
+
+var TestResponse_StatusType_name = map[int32]string{
+	0: "SUCCESS",
+	1: "TYPE_FAILURE",
+	2: "FAILURE",
+}
+var TestResponse_StatusType_value = map[string]int32{
+	"SUCCESS":      0,
+	"TYPE_FAILURE": 1,
+	"FAILURE":      2,
+}
+
+func (x TestResponse_StatusType) Enum() *TestResponse_StatusType {
+	p := new(TestResponse_StatusType)
+	*p = x
+	return p
+}
+func (x TestResponse_StatusType) String() string {
+	return proto.EnumName(TestResponse_StatusType_name, int32(x))
+}
+func (x *TestResponse_StatusType) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(TestResponse_StatusType_value, data, "TestResponse_StatusType")
+	if err != nil {
+		return err
+	}
+	*x = TestResponse_StatusType(value)
 	return nil
 }
 
@@ -138,6 +175,47 @@ func (m *TestMessage_MsgItem) GetTransactionType() TestMessage_TType {
 	return TestMessage_CREATE
 }
 
+type TestResponse struct {
+	FunctionName     *string                  `protobuf:"bytes,1,req,name=functionName" json:"functionName,omitempty"`
+	Status           *TestResponse_StatusType `protobuf:"varint,2,req,name=status,enum=PbTest.TestResponse_StatusType" json:"status,omitempty"`
+	Error            *string                  `protobuf:"bytes,3,opt,name=error" json:"error,omitempty"`
+	Solution         *int32                   `protobuf:"varint,4,opt,name=solution" json:"solution,omitempty"`
+	XXX_unrecognized []byte                   `json:"-"`
+}
+
+func (m *TestResponse) Reset()         { *m = TestResponse{} }
+func (m *TestResponse) String() string { return proto.CompactTextString(m) }
+func (*TestResponse) ProtoMessage()    {}
+
+func (m *TestResponse) GetFunctionName() string {
+	if m != nil && m.FunctionName != nil {
+		return *m.FunctionName
+	}
+	return ""
+}
+
+func (m *TestResponse) GetStatus() TestResponse_StatusType {
+	if m != nil && m.Status != nil {
+		return *m.Status
+	}
+	return TestResponse_SUCCESS
+}
+
+func (m *TestResponse) GetError() string {
+	if m != nil && m.Error != nil {
+		return *m.Error
+	}
+	return ""
+}
+
+func (m *TestResponse) GetSolution() int32 {
+	if m != nil && m.Solution != nil {
+		return *m.Solution
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterEnum("PbTest.TestMessage_TType", TestMessage_TType_name, TestMessage_TType_value)
+	proto.RegisterEnum("PbTest.TestResponse_StatusType", TestResponse_StatusType_name, TestResponse_StatusType_value)
 }

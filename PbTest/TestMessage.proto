@@ -19,7 +19,21 @@ message TestMessage {
     optional TType transaction_type = 4;
   }
 
-  service PbService {
-    rpc summate (TestMessage) returns (PbResponse);
+}
+
+message TestResponse {
+  required string functionName = 1;
+  required StatusType status = 2;
+  optional string error = 3;
+  optional int32 solution = 4;
+
+  enum StatusType {
+    SUCCESS = 0;
+    TYPE_FAILURE = 1;
+    FAILURE = 2;
   }
+}
+
+service PbService {
+  rpc summate (TestMessage) returns (TestResponse);
 }
