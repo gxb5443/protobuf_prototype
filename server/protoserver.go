@@ -4,32 +4,43 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net"
-	"os"
+	"net/rpc"
+	"runtime"
 
 	"../PbTest"
 
 	"github.com/golang/protobuf/proto"
 )
 
+type ServiceName struct{}
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+}
+
 func main() {
 	fmt.Println("Staring Server..")
-	c := make(chan *PbTest.TestMessage)
-	go func() {
+	listenAndServeRPC("tcp", ":8080")
+	/*
+		c := make(chan *PbTest.TestMessage)
+		go func() {
+			for {
+				message := <-c
+				ReadReceivedData(message)
+			}
+		}()
+		listener, err := net.Listen("tcp", ":8080")
+		checkError(err)
 		for {
-			message := <-c
-			ReadReceivedData(message)
+			if conn, err := listener.Accept(); err == nil {
+				go handleProtoClient(conn, c)
+			} else {
+				continue
+			}
 		}
-	}()
-	listener, err := net.Listen("tcp", ":8080")
-	checkError(err)
-	for {
-		if conn, err := listener.Accept(); err == nil {
-			go handleProtoClient(conn, c)
-		} else {
-			continue
-		}
-	}
+	*/
 }
 
 func ReadReceivedData(data *PbTest.TestMessage) {
@@ -42,8 +53,7 @@ func ReadReceivedData(data *PbTest.TestMessage) {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
+		log.Fatal("Fatal error: ", err.Error())
 	}
 }
 
@@ -56,4 +66,29 @@ func handleProtoClient(conn net.Conn, c chan *PbTest.TestMessage) {
 	err := proto.Unmarshal(buf.Bytes(), pdata)
 	checkError(err)
 	c <- pdata
+}
+
+func listenAndServeRPC(network, addr string) {
+	sn := new(ServiceName)
+	rpc.Register(sn)
+	listener, err := net.Listen("tcp", ":8080")
+	checkError(err)
+	defer listener.Close()
+	rpc.Accept(listener)
+}
+
+func (s *ServiceName) Summate(tm *PbTest.TestMessage, response *PbTest.TestResponse) error {
+	log.Println("SUMMING!")
+	//response := new(PbTest.TestResponse)
+	var sum int32
+	sum = 0
+	for _, msg := range tm.MessageItems {
+		sum += *msg.ItemValue
+	}
+
+	response.FunctionName = proto.String("Summate")
+	conversion := PbTest.TestResponse_StatusType(0)
+	response.Status = &conversion
+	response.Solution = proto.Int32(sum)
+	return nil
 }

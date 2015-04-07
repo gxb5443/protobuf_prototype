@@ -35,5 +35,5 @@ message TestResponse {
 }
 
 service PbService {
-  rpc summate (TestMessage) returns (TestResponse);
+  rpc Summate (TestMessage) returns (TestResponse);
 }

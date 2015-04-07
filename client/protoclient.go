@@ -5,9 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net"
+	"net/rpc"
 	"os"
 	"strconv"
+	"time"
 
 	"../PbTest"
 
@@ -15,14 +18,30 @@ import (
 )
 
 type Headers []string
+type Client struct {
+	Connection *rpc.Client
+}
+
+func NewClient(dst *string, timeout time.Duration) (*Client, error) {
+	connection, err := net.DialTimeout("tcp", *dst, timeout)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{
+		Connection: rpc.NewClient(connection),
+	}, nil
+}
 
 func main() {
 	filename := flag.String("f", "example.csv", "Enter the filename of CSV to read from")
 	dest := flag.String("d", "localhost:8080", "Enter the destination socket address")
 	flag.Parse()
+	c, err := NewClient(dest, time.Millisecond*500)
+	checkError(err)
 	data, err := retrieveDataFromFile(filename)
 	checkError(err)
-	sendDataToDest(data, dest)
+	c.Summate(data)
+	//sendDataToDest(data, dest)
 }
 
 func checkError(err error) {
@@ -81,6 +100,13 @@ func (h Headers) getHeaderIndex(headername string) int {
 		}
 	}
 	return -1
+}
+
+func (c *Client) Summate(item []byte) {
+	response := new(PbTest.TestResponse)
+	err := c.Connection.Call("ServiceName.Summate", item, response)
+	checkError(err)
+	log.Println(response)
 }
 
 func sendDataToDest(data []byte, dst *string) {
