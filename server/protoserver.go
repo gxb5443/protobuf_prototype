@@ -22,7 +22,10 @@ func main() {
 		}
 	}()
 	listener, err := net.Listen("tcp", ":8080")
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	for {
 		if conn, err := listener.Accept(); err == nil {
 			go handleProtoClient(conn, c)
@@ -40,20 +43,20 @@ func ReadReceivedData(data *PbTest.TestMessage) {
 	}
 }
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
-}
-
 func handleProtoClient(conn net.Conn, c chan *PbTest.TestMessage) {
 	fmt.Println("Connected!")
 	defer conn.Close()
 	var buf bytes.Buffer
 	io.Copy(&buf, conn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	pdata := new(PbTest.TestMessage)
 	err := proto.Unmarshal(buf.Bytes(), pdata)
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	c <- pdata
 }
