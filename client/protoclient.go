@@ -21,7 +21,10 @@ func main() {
 	dest := flag.String("d", "localhost:8080", "Enter the destination socket address")
 	flag.Parse()
 	data, err := retrieveDataFromFile(filename)
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	sendDataToDest(data, dest)
 }
 
@@ -34,12 +37,18 @@ func checkError(err error) {
 
 func retrieveDataFromFile(fname *string) ([]byte, error) {
 	file, err := os.Open(*fname)
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	defer file.Close()
 	csvreader := csv.NewReader(file)
 	var headers Headers
 	headers, err = csvreader.Read()
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	itemIdIndex := headers.getHeaderIndex("itemid")
 	itemNameIndex := headers.getHeaderIndex("itemname")
 	itemValueIndex := headers.getHeaderIndex("itemvalue")
@@ -50,20 +59,32 @@ func retrieveDataFromFile(fname *string) ([]byte, error) {
 	for {
 		record, err := csvreader.Read()
 		if err != io.EOF {
-			checkError(err)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+				return
+			}
 		} else {
 			break
 		}
 		msgItem := new(PbTest.TestMessage_MsgItem)
 		itemid, err := strconv.Atoi(record[itemIdIndex])
-		checkError(err)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+			return
+		}
 		msgItem.Id = proto.Int(itemid)
 		msgItem.ItemName = &record[itemNameIndex]
 		itemValue, err := strconv.Atoi(record[itemValueIndex])
-		checkError(err)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+			return
+		}
 		msgItem.ItemValue = proto.Int(itemValue)
 		ttype, err := strconv.Atoi(record[itemTypeIndex])
-		checkError(err)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+			return
+		}
 		converted_ttype := PbTest.TestMessage_TType(ttype)
 		msgItem.TransactionType = &converted_ttype
 		Testmessage.MessageItems = append(Testmessage.MessageItems, msgItem)
@@ -85,8 +106,14 @@ func (h Headers) getHeaderIndex(headername string) int {
 
 func sendDataToDest(data []byte, dst *string) {
 	conn, err := net.Dial("tcp", *dst)
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	n, err := conn.Write(data)
-	checkError(err)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return
+	}
 	fmt.Println("Sent " + strconv.Itoa(n) + " bytes")
 }
